@@ -19,6 +19,9 @@ app.get("/", (req, res) => {
   });
 });
 
+const routes = require("./routes");
+app.use("/api/v1", routes);
+
 let server;
 
 
