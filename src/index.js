@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const db = require("./db");
 
 // express body parser middleware
 app.use(express.json());
@@ -10,6 +11,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 app.get("/", (req, res) => {
+  console.log(process.env.DB_URL);
   res.status(200).json({
     success: true,
     data: null,
@@ -17,10 +19,24 @@ app.get("/", (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
-  console.log(`Config Store service running on port ${PORT}`);
-});
+let server;
+
+
+db.authenticate()
+  .then(() => {
+    console.log("Database connected...");
+    return db.sync();
+  })
+  .then(() => {
+    console.log("Database synchronized");
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Config Store service running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Unable to connect to the database:", err);
+  });
 
 process.on("unhandledRejection", (err) => {
   console.error("Unhandled promise rejection:", err);
